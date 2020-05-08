@@ -1,0 +1,101 @@
+server:
+  port: 8011
+  tomcat:
+    uri-encoding: UTF-8
+
+spring:
+  application:
+    name: pcs-consult
+  #mysql配置
+  datasource:
+    url: jdbc:mysql://39.105.25.16:3306/pcs?characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2b8
+    username: root
+    password: yang1290
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    platform: mysql
+    type: com.alibaba.druid.pool.DruidDataSource
+    # 下面为连接池的补充设置，应用到上面所有数据源中
+    # 初始化大小，最小，最大
+    initialSize: 5
+    minIdle: 5
+    maxActive: 20
+    # 配置获取连接等待超时的时间
+    maxWait: 60000
+    # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+    timeBetweenEvictionRunsMillis: 60000
+    # 配置一个连接在池中最小生存的时间，单位是毫秒
+    minEvictableIdleTimeMillis: 30000
+    validationQuery: select 'x'
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    # 打开PSCache，并且指定每个连接上PSCache的大小
+    poolPreparedStatements: true
+    maxPoolPreparedStatementPerConnectionSize: 20
+    # 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+    filters: stat,wall,slf4j
+    # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+    connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+  #jpa配置
+  jpa:
+    database: mysql
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+  redis:
+    database: 1
+    host: 39.105.25.16
+    port: 6379
+#    timeout: 2000
+  #配置文件传输
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 0
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+
+#注册中心注册服务
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://10.103.246.113:8000/eureka
+  instance:
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    prefer-ip-address: true
+    ##续约更新时间间隔设置5秒，m默认30s
+    lease-renewal-interval-in-seconds: 5
+    ##续约到期时间10秒，默认是90秒
+    lease-expiration-duration-in-seconds: 10
+
+#hystrix的超时时间
+hystrix:
+  command:
+    default:
+      execution:
+        timeout:
+          enabled: true
+        isolation:
+          thread:
+            timeoutInMilliseconds: 9000
+#ribbon的超时时间
+ribbon:
+  ReadTimeout: 6000
+  ConnectTimeout: 6000
+
+security:
+  oauth2:
+    resource:
+      user-info-uri: http://10.103.246.113:8001/pcs-auth/oauth/principal
+    client:
+      access-token-uri: http://10.103.246.113:8001/pcs-auth/oauth/token
+      grant-type: client_credentials,password
+logging:
+  level:
+    root: info
